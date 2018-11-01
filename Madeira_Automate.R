@@ -68,10 +68,32 @@ pluvio.df.list
 
 library(dplyr)
 fluvio.df <- bind_rows(fluvio.df.list, .id = "id")
-pluvio.df <- bind_rows(pluvio.df.list, .id = "id")
+#pluvio.df <- bind_rows(pluvio.df.list, .id = "id")
 
-pluvio.df <- bind_rows(pluvio.df.list)
+## 2nd approach - WORKS
+pluvio.df <- data.frame()
+for (i in 1:length(pluvio.df.list)) {
+  if(i==228) next
+  if(i==233) next
+  if(i==460) next
+  if(i==500) next
+  a <- pluvio.df.list[i] 
+  pluvio.df <- bind_rows(pluvio.df,a)
+  print(i) ## so 228,233,460 is the problem...
+}
+beep(sound=2)
 
+pluvio.df.list[228]
+pluvio.df.list[233]
+pluvio.df.list[460]
+test10 = bind_rows(pluvio.df,pluvio.df.list[234])
+
+#fluvio.df2 <- data.frame()   ### works, but we'll keep the first method since its the same output
+#for (j in 1:length(fluvio.df.list)) {
+#  b <- fluvio.df.list[j] 
+#  fluvio.df2 <- bind_rows(fluvio.df2,b)
+#  print(j) ## works completely
+#}
 
 #########---MATCHING STATIONS---###########
 
