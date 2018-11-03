@@ -1,19 +1,32 @@
-#Load Library:
-  
+#Load Packages/Library:
+
+if (!require("rgdal")) { install.packages("rgdal", dependencies = TRUE); library(rgdal) }
+if (!require("data.table")) { install.packages("data.table", dependencies = TRUE); 
+  library(data.table) }
+
+
 library(dplyr)
 library(rgdal)
 
-#Make list of Fluviometric & Pluviometric Stations Available in NDA Database (Has LAT & LON)
-
-all_fluvio <- read.csv("FINAL_AllAmazon_Fluvio1.csv")
-all_fluvio
-
-all_pluvio <- read.csv("FINAL_AllAmazon_Pluvio1.csv")
-all_pluvio
+# #Make list of Fluviometric & Pluviometric Stations Available in NDA Database (Has LAT & LON)
+# 
+# all_fluvio <- read.csv("FINAL_AllAmazon_Fluvio1.csv")
+# all_fluvio
+# 
+# all_pluvio <- read.csv("FINAL_AllAmazon_Pluvio1.csv")
+# all_pluvio
 
  #NOTE: These come from the metadata files.
 
-#Make list of stations needed (Madeira Basin Stations)
+#Download (Shar's) Excel file with all stations needed (contains location info).
+
+all_stations <- read.csv("stations_to_download.csv") 
+
+#Extract Madeira station code numbers.
+
+madeira_stations <- all_stations[ , c("station")]
+
+#Turn this into a list of stations needed (Madeira Basin Stations)
 
 stations_needed <- as.data.frame(madeira_stations)
 
@@ -24,8 +37,8 @@ setwd("/Users/mac/Desktop/Madeira_Basins/")
 ##Read files 
   #Example: filenames <- list.files(path="PATH/FOLDER OF FILES NEEDED") 
 
-  pluvio.filenames <- list.files(path = "Rainfall_WS1")
-  fluvio.filenames <- list.files(path="Flow_WS1")
+  pluvio.filenames <- list.files(path = "/Users/mac/Desktop/Madeira_Basins/Rainfall_WS1")
+  fluvio.filenames <- list.files(path="/Users/mac/Desktop/Madeira_Basins/Flow_WS1")
   
 #Create list of new names (In this case we remove ".csv" part & select wanted length)
   #Example: names <- substr(filenames, lower limit , upper limit)
@@ -44,11 +57,11 @@ setwd("/Users/mac/Desktop/Madeira_Basins/")
 library(readxl)
 
   #select folder/path containing excel files as temporary directory
-  setwd("Flow_WS1") 
+  setwd("/Users/mac/Desktop/Madeira_Basins/Flow_WS1") 
   fluvio.file.list <- list.files(pattern='*.xlsx', recursive = TRUE)
   fluvio.file.list
 
-  setwd("Rainfall_WS1")
+  setwd("/Users/mac/Desktop/Madeira_Basins/Rainfall_WS1")
   pluvio.file.list <- list.files(pattern='*.xlsx', recursive = TRUE)
   pluvio.file.list
 
@@ -62,64 +75,59 @@ pluvio.df.list <- lapply(pluvio.file.list, read_excel)
 names(pluvio.df.list) <- pluvio.names #sets name of Tibble to station code #
 pluvio.df.list
 
-pluvio.df.list
-
 #Bind excel files in ONE dataframe 
 
 library(dplyr)
 fluvio.df <- bind_rows(fluvio.df.list, .id = "id")
-pluvio.df <- bind_rows(pluvio.df.list, .id = "id")
 
-pluvio.df <- bind_rows(pluvio.df.list)
+# pluvio.df <- bind_rows(pluvio.df.list, .id = "id") #DID NOT WORK FOR PLUVIO
 
+#INSERT CODE HERE
+#
 
-#########---MATCHING STATIONS---###########
+#########---MATCHING STATIONS---FIRST ATTEMPT FAILED###########
 
-#Check where in the all_pluvio data set the stations we want are located [position].
-
-#We put this info in a vector named "match_pluvio".
-
-match_fluvio <- match(fluvio.df$id, stations_needed$madeira_stations)
-match_fluvio
-
-match_pluvio <- match(stations_needed$madeira_stations,all_pluvio$STATION_CODE)
-match_pluvio
-
-#We remove all NA to clear the results.
-match_fluvio <- match_fluvio[!is.na(match_fluvio)]
-match_fluvio
-
-match_pluvio <- match_pluvio[!is.na(match_pluvio)]
-match_pluvio
-
-#Now we subset by square brakets "[]" to get the code name.
-  # NOTE: this part can be done with ANY of the columns (i.e. LAT, LON...)
-
-all_fluvio$STATION_CODE[match_fluvio] 
-all_pluvio$STATION_CODE[match_pluvio] 
-
-#Finally, we create a new column.
-stations_needed$names =
-  all_pluvio$STATION_NAME[match(stations_needed$madeira_stations,all_pluvio$STATION_CODE)]
-
-stations_needed$names =
-  all_pluvio$STATION_NAME[match(stations_needed$madeira_stations,all_pluvio$STATION_CODE)]
-
-
-###SHAR SUGGESTION###
-
-#make a list before the loop and then call it back inside to save the resulting files.
-
-new <- matrix(0, nrow = nrow(fluvio.df), ncol = 6)
+# #Check where in the all_pluvio data set the stations we want are located [position].
+# 
+# #We put this info in a vector named "match_pluvio".
+# 
+# match_fluvio <- match(fluvio.df$id, stations_needed$madeira_stations)
+# match_fluvio
+# 
+# match_pluvio <- match(stations_needed$madeira_stations,all_pluvio$STATION_CODE)
+# match_pluvio
+# 
+# #We remove all NA to clear the results.
+# match_fluvio <- match_fluvio[!is.na(match_fluvio)]
+# match_fluvio
+# 
+# match_pluvio <- match_pluvio[!is.na(match_pluvio)]
+# match_pluvio
+# 
+# #Now we subset by square brakets "[]" to get the code name.
+#   # NOTE: this part can be done with ANY of the columns (i.e. LAT, LON...)
+# 
+# all_fluvio$STATION_CODE[match_fluvio] 
+# all_pluvio$STATION_CODE[match_pluvio] 
+# 
+# #Finally, we create a new column.
+# stations_needed$names =
+#   all_pluvio$STATION_NAME[match(stations_needed$madeira_stations,all_pluvio$STATION_CODE)]
+# 
+# stations_needed$names =
+#   all_pluvio$STATION_NAME[match(stations_needed$madeira_stations,all_pluvio$STATION_CODE)]
+# 
 
 
-# Change column name for stations
+# Change column name for stations into 'id' and make numeric
 
 stations_needed <- data.table(stations_needed)
 setnames(stations_needed, "madeira_stations", "id")
 stations_needed <- data.frame(stations_needed)
 stations_needed$id <- as.numeric(stations_needed$id)
 fluvio.df$id <- as.numeric(fluvio.df$id)
+
+#Merge stations needed and stations available by station 'id'
 
 new_for_fluvio <- merge(fluvio.df, stations_needed, by = "id")
 
@@ -143,7 +151,8 @@ for(i in 1:nrow(new_for_fluvio_test)){
 
 new_for_fluvio <- rbind(subset(new_for_fluvio, DATE != 999999), new_for_fluvio_test)
 
-# take care of the flows 
+# Change flow columns with different names to 'FLOW' and turn all NA to 999999
+# Make sure all of them are numeric.
 
 new_for_fluvio <- data.table(new_for_fluvio)
 setnames(new_for_fluvio, c("FLOW (mᶟ/s)","Flow (m3/s)", "Flow(m3/s)"), 
@@ -193,14 +202,17 @@ FINALLY.FLOW$Date <- NULL
 FINALLY.FLOW$flow1 <- NULL
 FINALLY.FLOW$flow2 <- NULL
 
+write.csv(FINALLY.FLOW, 'finally.fluvio.csv')
 
-# For future reference
+# IDEA: (in progress) 
+# Add columns with names of the stations, lat, long, and other info.
 
-for(i in 1:nrow(fluvio.df)){
-  for(j in 1:nrow(stations_needed)){
-    if(fluvio.df$id[i] == stations_needed$madeira_stations[j]){
-      new[i,] <- fluvio.df[i,]
-    }
-  }
-}
+# clean_fluvio <- data.frame()
+# 
+# for(i in 1:nrow(fluviometric)){
+#   if(fluviometric$FLOW[i] != 999999){
+#     fluviometric[i] <- fluviometric[i]
+#   }
+# }
+
 
