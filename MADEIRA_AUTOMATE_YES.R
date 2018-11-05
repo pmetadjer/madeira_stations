@@ -82,8 +82,17 @@ fluvio.df <- bind_rows(fluvio.df.list, .id = "id")
 
 # pluvio.df <- bind_rows(pluvio.df.list, .id = "id") #DID NOT WORK FOR PLUVIO
 
-#INSERT CODE HERE
-#
+#INSERT CODE HERE ## pretty much the same method, just skipping the stations that are all NA's
+pluvio.df <- data.frame()
+for (i in 1:length(pluvio.df.list)) {
+  if(i==228) next
+  if(i==233) next
+  if(i==460) next
+  if(i==500) next
+  a <- pluvio.df.list[i] 
+  pluvio.df <- bind_rows(pluvio.df,a)
+  #print(i) ## so 228,233,460 is the problem...
+}
 
 #########---MATCHING STATIONS---FIRST ATTEMPT FAILED###########
 
